@@ -1,0 +1,9 @@
+<procedure class="EDNACharacterise">
+  <StartEdnaCommand>/users/blissadm/local/bin/edna_script.sh</StartEdnaCommand>
+<edna_default_file>/mntdirect/_scisoft/users/svensson/git/mxcube/HardwareObjects.xml/edna_defaults.xml</edna_default_file>
+<fluxSource>currentFlux</fluxSource>
+
+  <device href="/mxlocal" role="beamline_pars"/>
+  <device href="/mxcollect" role="dataCollect"/>
+
+</procedure>

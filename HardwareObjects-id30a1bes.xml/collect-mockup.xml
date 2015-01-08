@@ -1,0 +1,14 @@
+<device class = "SimulateMultiCollect">
+  <username>SimulateMultiCollect</username>
+
+  <auto_processing>
+    <program>
+      <executable>/opt/pxsoft/bin/autoproc_master.pl</executable>
+      <event>before image after end_multicollect</event>
+    </program>
+    <program>
+      <executable>/users/blissadm/bin/autoproc-launcher.py</executable>
+      <event>before</event>
+    </program> 
+  </auto_processing>
+</device>

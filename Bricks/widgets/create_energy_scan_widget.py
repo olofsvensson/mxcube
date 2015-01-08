@@ -61,8 +61,9 @@ class CreateEnergyScanWidget(CreateTaskBase):
 
 
     def set_energy_scan_hwobj(self, energy_scan_hwobj):
-        self.periodic_table.periodicTable.\
-            setElements(energy_scan_hwobj.getElements())
+        if energy_scan_hwobj is not None:
+            self.periodic_table.periodicTable.\
+                setElements(energy_scan_hwobj.getElements())
 
 
     def single_item_selection(self, tree_item):

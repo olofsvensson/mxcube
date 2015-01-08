@@ -401,7 +401,10 @@ class CreateTaskBase(qt.QWidget):
             sample_is_mounted = False
 
         dm = self._beamline_setup_hwobj.diffractometer_hwobj
-        fully_automatic = (not dm.user_confirms_centring)
+        if dm is not None:
+            fully_automatic = (not dm.user_confirms_centring)
+        else:
+            fully_automatic = False
 
         free_pin_mode = sample.free_pin_mode
         temp_tasks = self._create_task(sample, shape)

@@ -1,0 +1,23 @@
+<object class="ISPyBClient2">
+  <ws_root>
+    <!-- http://160.103.210.1:8080/ispyb-ejb3/ispybWS/ -->
+    http://ispyvalid.esrf.fr:8080/ispyb-ejb3/ispybWS/
+  </ws_root>
+  <object role="session" href="/session"/>
+  <beamline_name>simulator-mxcube</beamline_name>
+
+  <proposals>
+    <proposal>
+      <code>ifx</code>
+      <ispyb>fx</ispyb>
+      <gui>fx</gui>
+    </proposal>
+  </proposals>
+
+  <inhouse>
+    <proposal>
+      <code>opid</code>
+      <number>144</number>
+    </proposal>
+  </inhouse>
+</object>

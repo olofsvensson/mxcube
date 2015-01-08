@@ -641,7 +641,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def collect_dc(self, dc, list_item):
         log = logging.getLogger("user_level_log")
 
-        if self.collect_hwobj:
+        if self.collect_hwobj is not None:
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_parent().get_parent()
