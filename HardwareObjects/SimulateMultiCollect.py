@@ -63,13 +63,50 @@ class SimulateMultiCollect(HardwareObject, object):
         self.oscillations_history = []
         self.current_lims_sample = None
         self.__safety_shutter_close_task = None
+        self.last_image_saved = None
 
 
+    def init(self):
+        self.setControlObjects(diffractometer = self.getObjectByRole("diffractometer"),
+                               sample_changer = self.getObjectByRole("sample_changer"),
+                               lims = self.getObjectByRole("dbserver"),
+                               safety_shutter = self.getObjectByRole("safety_shutter"),
+                               machine_current = self.getObjectByRole("machine_current"),
+                               cryo_stream = self.getObjectByRole("cryo_stream"),
+                               energy = self.getObjectByRole("energy"),
+                               resolution = self.getObjectByRole("resolution"),
+                               detector_distance = self.getObjectByRole("detector_distance"),
+                               transmission = self.getObjectByRole("transmission"),
+                               undulators = self.getObjectByRole("undulators"),
+                               flux = self.getObjectByRole("flux"),
+                               detector = self.getObjectByRole("detector"),
+                               beam_info = self.getObjectByRole("beam_info"))
+
+        self.setBeamlineConfiguration(directory_prefix = self.getProperty("directory_prefix"),
+                                      default_exposure_time = self.getProperty("default_exposure_time"),
+                                      minimum_exposure_time = self.getProperty("minimum_exposure_time"),
+                                      detector_fileext = self.getProperty("file_suffix"),
+                                      detector_type = self.getProperty("type"),
+                                      detector_mode = 1,
+                                      detector_manufacturer = self.getProperty("manufacturer"),
+                                      detector_model = self.getProperty("model"),
+                                      detector_px = self.getProperty("px"),
+                                      detector_py = self.getProperty("py"),
+                                      undulators = None,
+                                      focusing_optic = self.getProperty('focusing_optic'),
+                                      monochromator_type = self.getProperty('monochromator'),
+                                      beam_divergence_vertical = self.getProperty('beam_divergence_vertical'),
+                                      beam_divergence_horizontal = self.getProperty('beam_divergence_horizontal'),     
+                                      polarisation = self.getProperty('polarisation'),
+                                      input_files_server = self.getProperty("input_files_server"))
+ 
+    
     def setControlObjects(self, **control_objects):
+      self.bl_control = BeamlineControl(**control_objects)
       pass
-  
 
     def setBeamlineConfiguration(self, **configuration_parameters):
+      self.bl_config = BeamlineConfig(**configuration_parameters)
       pass
 
 
@@ -86,8 +123,14 @@ class SimulateMultiCollect(HardwareObject, object):
                 image_no = index + start_image_number
                 image_path = os.path.join(directory, template % image_no)
                 logging.info("Simulating collection of image: %s", image_path)
-                shutil.copyfile("/scisoft/pxsoft/data/AUTO_PROCESSING/id29_elspeth/tln_1_0001.cbf", image_path)
-
+                if template.startswith("line-"):
+                    reference_image = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20141003/RAW_DATA/MXPressE_01/line-MARK2-m1010713a_2_%04d.cbf" % image_no
+                elif  template.startswith("mesh-"):
+                    reference_image = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20141003/RAW_DATA/MXPressE_01/mesh-MARK2-m1010713a_1_%04d.cbf" % image_no
+                else:
+                    reference_image = "/scisoft/pxsoft/data/AUTO_PROCESSING/id29_elspeth/tln_1_0001.cbf"
+                shutil.copyfile(reference_image, image_path)
+                self.last_image_saved = image_no
 
     @task
     def set_transmission(self, transmission_percent):
@@ -161,9 +204,9 @@ class SimulateMultiCollect(HardwareObject, object):
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
       pass
 
-    @task
-    def last_image_saved(self):
-      pass
+#    @task
+#    def last_image_saved(self):
+#      return self.last_image_saved
 
     @task
     def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment):
@@ -197,52 +240,52 @@ class SimulateMultiCollect(HardwareObject, object):
 
 
     def get_wavelength(self):
-      pass
+      return 1.0
 
 
     def get_detector_distance(self):
-      pass
+      return 240.0
 
 
     def get_resolution(self):
-      pass
+      return 2.0
 
 
     def get_transmission(self):
-      pass
+      return 100.0
 
 
     def get_undulators_gaps(self):
-      pass
+      return []
 
 
     def get_resolution_at_corner(self):
-      pass
+      return 1.6
 
 
     def get_beam_size(self):
-      pass
+      return (0.1, 0.1)
 
 
     def get_slit_gaps(self):
-      pass
+      return (0.1, 0.1)
 
 
     def get_beam_shape(self):
-      pass
+      return "elliptical"
 
     def get_beam_centre(self):
-      pass
+      return (211.82, 216.24)
 
     def get_measured_intensity(self):
-      pass
+      return 1e11
 
 
     def get_machine_current(self):
-      pass
+      return 200.0
 
     def get_machine_fill_mode(self):
-      pass
+      return ""
 
     
     def get_machine_message(self):
@@ -259,7 +302,10 @@ class SimulateMultiCollect(HardwareObject, object):
 
 
     def store_image_in_lims(self, frame, first_frame, last_frame):
-      pass
+        if first_frame or last_frame:
+            return True
+        else:
+            return False
     
 
     def get_sample_info_from_parameters(self, parameters):
@@ -351,7 +397,23 @@ class SimulateMultiCollect(HardwareObject, object):
 
 
     def get_archive_directory(self, directory):
-      pass
+        res = None
+       
+        dir_path_list = directory.split(os.path.sep)
+        try:
+            suffix_path=os.path.join(*dir_path_list[4:])
+        except TypeError:
+            return None
+        else:
+            if 'inhouse' in directory:
+                archive_dir = os.path.join('/data/pyarch/', dir_path_list[2], suffix_path)
+            else:
+#                archive_dir = os.path.join('/data/pyarch/', dir_path_list[4], dir_path_list[3], *dir_path_list[5:])
+                archive_dir = os.path.join('/data/pyarch/', "id30a1", dir_path_list[3], *dir_path_list[5:])
+        if archive_dir[-1] != os.path.sep:
+            archive_dir += os.path.sep
+            
+        return archive_dir
 
 
     def prepare_input_files(self, files_directory, prefix, run_number, process_directory):
@@ -440,7 +502,10 @@ class SimulateMultiCollect(HardwareObject, object):
             if self.bl_control.machine_current is not None:
                 data_collect_parameters["synchrotronMode"] = self.get_machine_fill_mode()
             data_collect_parameters["status"] = "failed"
-
+            
+            collection_group_id = self.bl_control.lims.store_data_collection_group(data_collect_parameters)
+            data_collect_parameters["group_id"] = collection_group_id
+            
             (self.collection_id, detector_id) = \
                                  self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
               
@@ -661,6 +726,7 @@ class SimulateMultiCollect(HardwareObject, object):
                     self.bl_control.lims.update_data_collection(data_collect_parameters, wait=True)
                     logging.info("Done")
                   except:
+                    raise
                     logging.getLogger("HWR").exception("Could not store data collection into LIMS")
 
             if self.bl_control.lims and self.bl_config.input_files_server:
@@ -744,11 +810,11 @@ class SimulateMultiCollect(HardwareObject, object):
                                                      data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                       if data_collect_parameters.get("shutterless"):
-                          while self.last_image_saved() == 0:
+                          while self.last_image_saved == 0:
                             time.sleep(exptime)
                           
                           time.sleep(exptime*wedge_size/100.0)
-                          last_image_saved = self.last_image_saved()
+                          last_image_saved = self.last_image_saved
                           frame = max(start_image_number+1, start_image_number+last_image_saved-1)
                           self.emit("collectImageTaken", frame)
                           logging.info("J=%d", j)
