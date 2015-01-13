@@ -442,10 +442,8 @@ class DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        random_num = random.random()
-        return {"phi": random_num * 10, "focus": random_num * 20, 
-                "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
-		"kappa": 0.0009, "kappa_phi": 311.0, "zoom": 8.53}
+        return self.current_positions_dict
+    
 
     def simulateAutoCentring(self, sample_info = None):
         """
@@ -544,3 +542,8 @@ class DiffractometerMockup(Equipment):
             self.emit('centringSnapshots', (True,))
             self.emit_progress_message("")
         self.emit_progress_message("Sample is centred!")
+
+    def moveMotors(self, roles_positions_dict):
+        for motorName, position in roles_positions_dict.items():
+            self.current_positions_dict[motorName] = position
+            

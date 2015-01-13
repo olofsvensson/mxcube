@@ -1,5 +1,3 @@
-<!-- Example beamline setup file -->
-
 <object class="BeamlineSetup" role="BeamlineSetup">
   <!-- Objects directly associatd with hardware -->
   <object href="/transmission-mockup" role="transmission"/>
@@ -12,7 +10,6 @@
   <object href="/session" role="session"/>
   <object href="/dbconnection" role="lims_client"/>
   <object href="/data-analysis" role="data_analysis"/>
-  <!--<object href="/workflow-mockup" role="workflow"/> -->
   <object href="/ednaparams" role="workflow"/>
  
   <!-- Procedures and routines -->
