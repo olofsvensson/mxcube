@@ -408,8 +408,7 @@ class SimulateMultiCollect(HardwareObject, object):
             if 'inhouse' in directory:
                 archive_dir = os.path.join('/data/pyarch/', dir_path_list[2], suffix_path)
             else:
-#                archive_dir = os.path.join('/data/pyarch/', dir_path_list[4], dir_path_list[3], *dir_path_list[5:])
-                archive_dir = os.path.join('/data/pyarch/', "id30a1", dir_path_list[3], *dir_path_list[5:])
+                archive_dir = os.path.join('/data/pyarch/', dir_path_list[4], dir_path_list[3], *dir_path_list[5:])
         if archive_dir[-1] != os.path.sep:
             archive_dir += os.path.sep
             
@@ -502,9 +501,6 @@ class SimulateMultiCollect(HardwareObject, object):
             if self.bl_control.machine_current is not None:
                 data_collect_parameters["synchrotronMode"] = self.get_machine_fill_mode()
             data_collect_parameters["status"] = "failed"
-            
-            collection_group_id = self.bl_control.lims.store_data_collection_group(data_collect_parameters)
-            data_collect_parameters["group_id"] = collection_group_id
             
             (self.collection_id, detector_id) = \
                                  self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
