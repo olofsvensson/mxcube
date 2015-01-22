@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<object>
+  <manufacturer>DECTRIS</manufacturer>
+  <type>pilatus</type>
+  <model>Pilatus_6M_F</model>
+  <file_suffix>cbf</file_suffix>
+
+  <px>0.172</px>
+  <py>0.172</py>
+  <width>423.636</width>
+  <height>434.644</height>
+
+  <beam>
+      <ax>-0.00061</ax>
+      <ay>0.0031</ay>
+      <bx>216.88</bx>
+      <by>208.47</by>
+  </beam>
+</object>

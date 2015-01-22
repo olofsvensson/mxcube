@@ -2,13 +2,19 @@
   <username>SimulateMultiCollect</username>
   <object href="/dbconnection" role="dbserver"/>
 
+  <object href="/diffractometer-mockup" role="diffractometer"/>
+  <object href="/mach" role="machine_current"/>
+  <object href="/flux" role="flux"/>
+
+  <input_files_server>localhost:5698</input_files_server>
+  
   <directory_prefix>id29</directory_prefix>
   <default_exposure_time>0.1</default_exposure_time>
   <minimum_exposure_time>0.1</minimum_exposure_time>
   <detector_fileext>cbf</detector_fileext>
-  <detector_type>simulator</detector_type>
-  <detector_manufacturer>dectris</detector_manufacturer>
-  <detector_model>6m</detector_model>
+  <detector_type>pilatus</detector_type>
+  <detector_manufacturer>DECTRIS</detector_manufacturer>
+  <detector_model>Pilatus_6M_F</detector_model>
   <detector_px>2000</detector_px>
   <detector_py>2000</detector_py>
   <focusing_optic>KB</focusing_optic>
@@ -23,7 +29,7 @@
       <event>before image after end_multicollect</event>
     </program>
     <program>
-      <executable>/users/blissadm/bin/autoproc-launcher.py</executable>
+      <executable>/users/opid30/git/mxcube/bin/autoproc-launcher.py</executable>
       <event>before</event>
     </program> 
   </auto_processing>

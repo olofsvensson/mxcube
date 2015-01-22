@@ -4,6 +4,7 @@
   <object href="/diffractometer-mockup" role="diffractometer"/>
   <object href="/sc-mockup" role="sample_changer"/>    
   <object href="/resolution-mockup" role="resolution"/>
+  <object href="/pilatus" role="detector"/>
 
   <!-- Software (abstract) concepts -->
   <object href="/shape-history" role="shape_history"/>

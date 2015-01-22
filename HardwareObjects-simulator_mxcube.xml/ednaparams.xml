@@ -1,5 +1,5 @@
 <device class="EdnaWorkflow">
-  <tangoname>id30a1/bes/1</tangoname>
+  <tangoname>simulator_mxcube/bes/1</tangoname>
   <username>edna workflow tango server</username>
   <command type="tango" name="start">Start</command>
   <command type="tango" name="pause">Pause</command>

@@ -57,3 +57,6 @@ class EnergyScanMockup(Equipment):
 
     def isConnected(self):
         return True
+
+    def get_value(self):
+        return self.getCurrentEnergy()

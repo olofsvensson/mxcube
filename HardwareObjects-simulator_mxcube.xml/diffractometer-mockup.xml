@@ -1,4 +1,6 @@
 <?xml version="1.0"?>
 <equipment class="DiffractometerMockup">
   <username>Diffractometer</username>
+
+  <object href="/mockup_camera" role="camera"></object>
 </equipment>
