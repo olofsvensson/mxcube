@@ -1,4 +1,3 @@
-. blissrc
 #echo "Sleeping 30s in order to allow images to be written to disk, please wait..."
 #sleep 30
 echo "Running edna plugin launcher EDPluginControlInterfaceToMXCuBEv1_3 --inputFile $1 --outputFile $2 --basedir $3"

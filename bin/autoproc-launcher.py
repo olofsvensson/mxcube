@@ -31,7 +31,7 @@ import traceback
 
 # XDS.INP creation is now asynchronous in mxcube, so it may not be here yet
 # when we're started
-WAIT_XDS_TIMEOUT = 20
+WAIT_XDS_TIMEOUT = 300
 WAIT_XDS_RESOLUTION = 5
 
 def _template_to_image(fmt, num):
@@ -92,12 +92,12 @@ cell = options.get('-cell')
 xds_appeared = False
 wait_xds_start = time.time()
 logging.debug('Waiting for XDS.INP file')
-while not xds_appeared and time.time() - wait_xds_start < WAIT_XDS_TIMEOUT:
+while not xds_appeared and (time.time() - wait_xds_start < WAIT_XDS_TIMEOUT):
+    time.sleep(1)
     if os.path.exists(input_file) and os.stat(input_file).st_size > 0:
+        time.sleep(1)
         xds_appeared = True
         logging.debug('XDS.INP file is there, size={0}'.format(os.stat(input_file).st_size))
-    else:
-        time.sleep(WAIT_XDS_RESOLUTION)
 if not xds_appeared:
     logging.error('XDS.INP file ({0}) failed to appear after {1} seconds'.format(input_file, WAIT_XDS_TIMEOUT))
     sys.exit(1)
