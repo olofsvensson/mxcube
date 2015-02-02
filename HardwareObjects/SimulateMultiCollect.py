@@ -81,7 +81,13 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
             self.emit("collectNumberOfFrames", number_of_images) 
         start_image_number = oscillation_parameters["start_image_number"]
         first_image_no = start_image_number
-        if template.startswith("line-"):
+        if "BurnStrategy" in directory:
+            if  template.startswith("ref-"):
+                reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/ref-x_1_%04d.cbf" % first_image_no
+            elif  template.startswith("burn-"):
+                wedgeNumber = int(template.split("_")[-3].split("w")[-1])
+                reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/burn-xw%d_1_%04d.cbf" % (wedgeNumber, first_image_no)                    
+        elif template.startswith("line-"):
             reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/line-opid30a1_%d_%04d.cbf" % (run_number, first_image_no)
         elif  template.startswith("mesh-"):
 #                    reference_image = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20141003/RAW_DATA/MXPressE_01/mesh-MARK2-m1010713a_1_%04d.cbf" % image_no
@@ -192,7 +198,7 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
 
     @task
     def set_transmission(self, transmission_percent):
-        pass
+        self.bl_control.transmission.setTransmission(transmission_percent)
 
 
     @task
@@ -304,7 +310,13 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
                 image_no = index + start_image_number
                 image_path = os.path.join(directory, template % image_no)
                 logging.info("Simulating collection of image: %s", image_path)
-                if template.startswith("line-"):
+                if "BurnStrategy" in image_path:
+                    if  template.startswith("ref-"):
+                        reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/ref-x_1_%04d.cbf" % image_no
+                    elif  template.startswith("burn-"):
+                        wedgeNumber = int(template.split("_")[-3].split("w")[-1])
+                        reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/burn-xw%d_1_%04d.cbf" % (wedgeNumber, image_no)                    
+                elif template.startswith("line-"):
                     reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/line-opid30a1_%d_%04d.cbf" % (run_number, image_no)
                 elif  template.startswith("mesh-"):
 #                    reference_image = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20141003/RAW_DATA/MXPressE_01/mesh-MARK2-m1010713a_1_%04d.cbf" % image_no
@@ -352,7 +364,7 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
 
 
     def get_transmission(self):
-      return 100.0
+        return self.bl_control.transmission.getAttFactor()
 
 
     def get_undulators_gaps(self):
@@ -521,14 +533,16 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
         for input_file_dir, file_prefix in ((self.raw_data_input_file_dir, "../.."), (self.xds_directory, "../links")): 
             xds_input_file = os.path.join(input_file_dir, "XDS.INP")
             conn.request("GET", "/xds.inp/%d?basedir=%s" % (collection_id, file_prefix))
-            xds_file = open(xds_input_file, "w")
             r = conn.getresponse()
             if r.status != 200:
                 logging.error("Could not create input file")
             else:
-                xds_file.write(r.read())
-            xds_file.close()
-            os.chmod(xds_input_file, 0666)
+                strXml = r.read()
+#                logging.error("XDS.INP: {0}\n{1}".format(xds_input_file, strXml))
+                xds_file = open(xds_input_file, "w")
+                xds_file.write(strXml)
+                xds_file.close()
+                os.chmod(xds_input_file, 0666)
 
         for input_file_dir, file_prefix in ((self.mosflm_raw_data_input_file_dir, "../.."), (self.mosflm_directory, "../links")): 
             mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
@@ -558,10 +572,10 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
                 om_filename = os.path.join(stac_om_dir, "bestfile.par")
        
             stac_om_file.write(stac_template.format(omfilename=om_filename, omtype=om_type,
-                             phi=self.bl_control.diffractometer.get_positions()["phi"],
-                             sampx=self.bl_control.diffractometer.get_positions()["sampx"],
-                             sampy=self.bl_control.diffractometer.get_positions()["sampy"],
-                             phiy=self.bl_control.diffractometer.get_positions()["sampx"]))
+                             phi=self.bl_control.diffractometer.getPositions()["phi"],
+                             sampx=self.bl_control.diffractometer.getPositions()["sampx"],
+                             sampy=self.bl_control.diffractometer.getPositions()["sampy"],
+                             phiy=self.bl_control.diffractometer.getPositions()["sampx"]))
             stac_om_file.close()
             os.chmod(stac_om_input_file, 0666)
 

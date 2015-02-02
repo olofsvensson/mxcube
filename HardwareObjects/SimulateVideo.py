@@ -14,14 +14,17 @@ import PyTango
 import numpy
 import struct
 
-class SimulateVideo(BaseHardwareObjects.Device):
+class SimulateVideo(BaseHardwareObjects.Device, BaseHardwareObjects.DeviceContainer):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
+        BaseHardwareObjects.DeviceContainer.__init__(self)
         self.__brightnessExists = False
         self.__contrastExists = False
         self.__gainExists = False
         self.__gammaExists = False
         self.__polling = None
+        self._height = 600
+        self._width = 400
         
     def init(self):
         self.setIsReady(True)
@@ -30,8 +33,17 @@ class SimulateVideo(BaseHardwareObjects.Device):
         return BayerType("RG16")
 
     def _get_last_image(self):
-        return None
-    
+#        raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint16)
+        raw_buffer = numpy.linspace(0, 255, self._width * self._height)
+        self.scaling.autoscale_min_max(raw_buffer, self._width, self._height, pixmaptools.LUT.Scaling.BAYER_RG16)
+        validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
+                                                              self._width, self._height,
+                                                              pixmaptools.LUT.Scaling.BAYER_RG16,
+                                                              self.scaling)
+        if validFlag:
+            return qimage
+
+     
     def _do_polling(self, sleep_time):
         time.sleep(sleep_time)
 
@@ -57,11 +69,11 @@ class SimulateVideo(BaseHardwareObjects.Device):
     #############   WIDTH   #################
     def getWidth(self):
         """tango"""
-        return 600
+        return self._width
 
     def getHeight(self):
         """tango"""
-        return 400
+        return self._height
     
     def setSize(self, width, height):
         """Set new image size
@@ -78,9 +90,9 @@ class SimulateVideo(BaseHardwareObjects.Device):
     def setLive(self, mode):
         """tango"""
         if mode:
-            self.device.video_live=True
+            self.video_live=True
         else:
-            self.device.video_live=False
+            self.video_live=False
 
     def setExposure(self, exposure):
         pass

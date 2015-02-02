@@ -5,14 +5,19 @@ import os
 import copy
 import time
 import logging
+import numpy
+import math
 import tempfile
 import gevent
 import random
+import shutil
+import subprocess
 from gevent.event import AsyncResult
 from Qub.Tools import QubImageSave
 from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import Equipment
+import sample_centring
 
 class myimage:
     """
@@ -42,6 +47,21 @@ class myimage:
         return self.imgcopy
 
 last_centred_position = [200, 200]
+
+def take_snapshots(number_of_snapshots, light, light_motor, phi, zoom, drawing):
+    if number_of_snapshots <= 0:
+        return
+
+    centredImages = []
+    
+    for i, angle in enumerate([-90] * number_of_snapshots):
+        logging.getLogger("HWR").info("MiniDiff: taking snapshot #%d", i + 1)
+#     centredImages.append((phi.getPosition(),str(myimage(drawing))))
+#     phi.syncMoveRelative(angle)
+
+    centredImages.reverse()  # snapshot order must be according to positive rotation direction
+
+    return centredImages
 
 class DiffractometerMockup(Equipment):
     """
@@ -109,14 +129,34 @@ class DiffractometerMockup(Equipment):
              DiffractometerMockup.MANUAL3CLICK_MODE: self.start_3Click_centring,
              DiffractometerMockup.C3D_MODE: self.start_automatic_centring}
         self.cancel_centring_methods = {}
-        self.current_positions_dict = {'phiy'  : 0, 'phiz' : 0, 'sampx' : 0,
-                                       'sampy' : 0, 'zoom' : 0, 'phi' : 17.6,
-                                       'focus' : 0, 'kappa': 0, 'kappa_phi': 0,
-                                       'beam_x': 0, 'beam_y': 0} 
         self.centring_status = {"valid": False}
         self.centring_time = 0
         self.user_confirms_centring = True
         self.user_clicked_event = AsyncResult()
+
+        try:
+          phiz_ref = self["centringReferencePosition"].getProperty("phiz")
+        except:
+          phiz_ref = None
+
+        self.phiMotor = self.getDeviceByRole('phi')
+        self.phizMotor = self.getDeviceByRole('phiz')
+        self.phiyMotor = self.getDeviceByRole("phiy")
+        self.zoomMotor = self.getDeviceByRole('zoom')
+        self.lightMotor = self.getDeviceByRole('light')
+        self.focusMotor = self.getDeviceByRole('focus')
+        self.sampleXMotor = self.getDeviceByRole("sampx")
+        self.sampleYMotor = self.getDeviceByRole("sampy")
+        self.camera = self.getDeviceByRole('camera')
+        self.kappaMotor = self.getDeviceByRole('kappa')
+        self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
+        self.beam_info = self.getObjectByRole('beam_info')
+
+        self.centringPhi=sample_centring.CentringMotor(self.phiMotor, direction=-1)
+        self.centringPhiz=sample_centring.CentringMotor(self.phizMotor, reference_position=phiz_ref)
+        self.centringPhiy=sample_centring.CentringMotor(self.phiyMotor)
+        self.centringSamplex=sample_centring.CentringMotor(self.sampleXMotor)
+        self.centringSampley=sample_centring.CentringMotor(self.sampleYMotor)
 
         self.image_width = 400
         self.image_height = 400
@@ -222,18 +262,13 @@ class DiffractometerMockup(Equipment):
         """
         return
 
-    def get_omega_axis_position(self):	
-        """
-        Descript. :
-        """
-        return self.current_positions_dict.get("phi")     
+#    def get_omega_axis_position(self):	
+#        """
+#        Descript. :
+#        """
+#        return self.current_positions_dict.get("phi")     
 
-    def get_positions(self):
-        """
-        Descript. :
-        """
-        return self.current_positions_dict
-
+   
     def get_current_positions_dict(self):
         """
         Descript. :
@@ -308,6 +343,17 @@ class DiffractometerMockup(Equipment):
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
         self.current_centring_procedure.link(self.manual_centring_done)	
 
+    def start3ClickCentring(self, sample_info=None):
+        self.currentCentringProcedure = sample_centring.start({"phi":self.centringPhi,
+                                                               "phiy":self.centringPhiy,
+                                                               "sampx": self.centringSamplex,
+                                                               "sampy": self.centringSampley,
+                                                               "phiz": self.centringPhiz }, 
+                                                              self.pixelsPerMmY, self.pixelsPerMmZ, 
+                                                              self.getBeamPosX(), self.getBeamPosY())
+                                                                         
+        self.currentCentringProcedure.link(self.manualCentringDone)
+
     def start_automatic_centring(self, sample_info = None, loop_only = False):
         """
         Descript. :
@@ -315,21 +361,71 @@ class DiffractometerMockup(Equipment):
         return
 
     def motor_positions_to_screen(self, centred_positions_dict):
-        """
-        Descript. :
-        """ 
-        return last_centred_position[0], last_centred_position[1]
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
+        phi_angle = math.radians(self.centringPhi.direction*self.centringPhi.getPosition()) 
+        sampx = self.centringSamplex.direction * (centred_positions_dict["sampx"]-self.centringSamplex.getPosition())
+        sampy = self.centringSampley.direction * (centred_positions_dict["sampy"]-self.centringSampley.getPosition())
+        phiy = self.centringPhiy.direction * (centred_positions_dict["phiy"]-self.centringPhiy.getPosition())
+        phiz = self.centringPhiz.direction * (centred_positions_dict["phiz"]-self.centringPhiz.getPosition())
+        rotMatrix = numpy.matrix([math.cos(phi_angle), -math.sin(phi_angle), math.sin(phi_angle), math.cos(phi_angle)])
+        rotMatrix.shape = (2, 2)
+        invRotMatrix = numpy.array(rotMatrix.I)
+        dx, dy = numpy.dot(numpy.array([sampx, sampy]), invRotMatrix)*self.pixelsPerMmY
+        beam_pos_x = self.getBeamPosX()
+        beam_pos_y = self.getBeamPosY()
 
-    def manual_centring_done(self, manual_centring_procedure):
-        """
-        Descript. :
-        """
-        self.emit_progress_message("Moving sample to centred position...")
-        self.emit_centring_moving()
-        self.centred_time = time.time()
-        self.emit_centring_successful()
-        self.emit_progress_message("")
+        x = (phiy * self.pixelsPerMmY) + beam_pos_x
+        y = dy + (phiz * self.pixelsPerMmZ) + beam_pos_y
 
+        return x, y
+ 
+    def manualCentringDone(self, manual_centring_procedure):
+        try:
+          motor_pos = manual_centring_procedure.get()
+          if isinstance(motor_pos, gevent.GreenletExit):
+            raise motor_pos
+        except:
+          logging.exception("Could not complete manual centring")
+          self.emitCentringFailed()
+        else:
+          self.emitProgressMessage("Moving sample to centred position...")
+          self.emitCentringMoving()
+          try:
+            sample_centring.end()
+          except:
+            logging.exception("Could not move to centred position")
+            self.emitCentringFailed()
+          
+          #logging.info("EMITTING CENTRING SUCCESSFUL")
+          self.centredTime = time.time()
+          self.emitCentringSuccessful()
+          self.emitProgressMessage("")
+
+    def autoCentringDone(self, auto_centring_procedure): 
+        self.emitProgressMessage("")
+        self.emit("newAutomaticCentringPoint", (-1,-1))
+
+        res = auto_centring_procedure.get()
+        
+        if isinstance(res, gevent.GreenletExit):
+          logging.error("Could not complete automatic centring")
+          self.emitCentringFailed()
+        else: 
+          positions = self.zoomMotor.getPredefinedPositionsList()
+          i = len(positions) / 2
+          self.zoomMotor.moveToPosition(positions[i-1])
+
+          #be sure zoom stop moving
+          while self.zoomMotor.motorIsMoving():
+              time.sleep(0.1)
+
+          self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
+
+          if self.user_confirms_centring:
+            self.emitCentringSuccessful()
+          else:
+            self.emitCentringSuccessful()
+            self.acceptCentring()
     @task
     def move_to_centred_position(self, centred_pos):
         """
@@ -426,36 +522,27 @@ class DiffractometerMockup(Equipment):
         else:
             logging.getLogger("HWR").debug("trying to emit centringSuccessful outside of a centring")
 
-    def emit_progress_message(self, msg = None):
-        """
-        Descript. :
-        """
+    def emitProgressMessage(self,msg=None):
+        #logging.getLogger("HWR").debug("%s: %s", self.name(), msg)
         self.emit('progressMessage', (msg,))
 
-    def get_centring_status(self):
-        """
-        Descript. :
-        """
-        return copy.deepcopy(self.centring_status)
+
+    def getCentringStatus(self):
+        return copy.deepcopy(self.centringStatus)
+
 
     def getPositions(self):
-        """
-        Descript. :
-        """
-        return self.current_positions_dict
+      return { "phi": self.phiMotor.getPosition(),
+               "focus": self.focusMotor.getPosition(),
+               "phiy": self.phiyMotor.getPosition(),
+               "phiz": self.phizMotor.getPosition(),
+               "sampx": self.sampleXMotor.getPosition(),
+               "sampy": self.sampleYMotor.getPosition(),
+               "kappa": self.kappaMotor.getPosition() if self.kappaMotor is not None else None,
+               "kappa_phi": self.kappaPhiMotor.getPosition() if self.kappaPhiMotor is not None else None,    
+               "zoom": self.zoomMotor.getPosition()}
     
 
-    def simulateAutoCentring(self, sample_info = None):
-        """
-        Descript. :
-        """
-        return
-
-    def get_current_positions_dict(self):
-        """
-        Descript. :
-        """
-        return
 
     def start_set_phase(self, name):
         """
@@ -544,6 +631,78 @@ class DiffractometerMockup(Equipment):
         self.emit_progress_message("Sample is centred!")
 
     def moveMotors(self, roles_positions_dict):
-        for motorName, position in roles_positions_dict.items():
-            self.current_positions_dict[motorName] = position
+        motor = { "phi": self.phiMotor,
+                  "focus": self.focusMotor,
+                  "phiy": self.phiyMotor,
+                  "phiz": self.phizMotor,
+                  "sampx": self.sampleXMotor,
+                  "sampy": self.sampleYMotor,
+                  "kappa": self.kappaMotor,
+                  "kappa_phi": self.kappaPhiMotor,
+                  "zoom": self.zoomMotor }
+   
+        for role, pos in roles_positions_dict.iteritems():
+            m = motor.get(role)
+            if m is not None:
+                m.move(pos)
+ 
+        # TODO: remove this sleep, the motors states should
+        # be MOVING since the beginning (or READY if move is
+        # already finished) 
+        time.sleep(1)
+ 
+        while not all([m.getState() == m.READY for m in motor.itervalues() if m is not None]):
+            time.sleep(0.1)
+
+    
+    def takeSnapshots(self, image_count, wait=False):
+        self.camera.forceUpdate = True
+        
+        snapshotsProcedure = gevent.spawn(take_snapshots, image_count, self.lightWago, self.lightMotor ,self.phiMotor,self.zoomMotor,self._drawing)
+        self.emit('centringSnapshots', (None,))
+        self.emitProgressMessage("Taking snapshots")
+        self.centringStatus["images"]=[]
+        snapshotsProcedure.link(self.snapshotsDone)
+
+        if wait:
+          self.centringStatus["images"] = snapshotsProcedure.get()
+
+ 
+    def snapshotsDone(self, snapshotsProcedure):
+        self.camera.forceUpdate = False
+        
+        try:
+           self.centringStatus["images"] = snapshotsProcedure.get()
+        except:
+           logging.getLogger("HWR").exception("MiniDiff: could not take crystal snapshots")
+           self.emit('centringSnapshots', (False,))
+           self.emitProgressMessage("")
+        else:
+           self.emit('centringSnapshots', (True,))
+           self.emitProgressMessage("")
+        self.emitProgressMessage("Sample is centred!")
+        #self.emit('centringAccepted', (True,self.getCentringStatus()))
+
+
+
+    def simulateAutoCentring(self,sample_info=None):
+        pass
             
+    def save_snapshot(self, filename):
+        snapshotReferenceDir = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20150123/PROCESSED_DATA/RibBio/RibBio-S9/MXPressE_01"
+        phi = self.phiMotor.getPosition()
+        phiy = self.phiyMotor.getPosition()
+        if phiy > 0.5:
+            snapShotFileName = "snapshot_background.png"
+        else:
+            snapShotFileName = "snapshot_{0:03d}.png".format(int(phi/30)*30)
+        snapShotFilePath = os.path.join(snapshotReferenceDir, snapShotFileName)
+        fileDirectory = os.path.dirname(filename)
+        if fileDirectory.startswith("/data/pyarch"):
+            if not os.path.exists(fileDirectory):
+                sts = subprocess.Popen("ssh mxedna 'mkdir -p {0}'".format(fileDirectory) , shell=True).wait()
+            sts = subprocess.Popen("ssh mxedna 'cp {0} {1}'".format(snapShotFilePath, filename) , shell=True).wait()
+        else:
+            if not os.path.exists(fileDirectory):
+                os.makedirs(fileDirectory)
+            shutil.copyfile(snapShotFilePath, filename)
