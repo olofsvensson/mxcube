@@ -1,0 +1,4 @@
+<device class = "MotorMockup">
+  <username>Front light</username>
+  <GUIstep>0.011</GUIstep>
+</device>

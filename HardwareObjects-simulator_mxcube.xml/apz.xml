@@ -1,0 +1,6 @@
+<device class = "MotorMockup">
+  <username>Aperture Vertical</username>
+  <specname>apz</specname>
+  <GUIstep>0.002</GUIstep>
+  <unit>1e-3</unit>
+</device>

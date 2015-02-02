@@ -1,0 +1,8 @@
+<device class="SimulateVideo">
+  <username>Prosilica GE1350C</username>
+  <tangoname>1</tangoname>
+  <imagetype>mmap:/tmp/prosilicaBuffer</imagetype>
+  <interval>40</interval>
+  <remote_interval>40</remote_interval>
+  <bpmname>1</bpmname>
+</device>

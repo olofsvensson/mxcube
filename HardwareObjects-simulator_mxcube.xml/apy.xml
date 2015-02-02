@@ -1,0 +1,6 @@
+<device class = "MotorMockup">
+  <username>Aperture Horizontal</username>
+  <specname>apy</specname>
+  <unit>1e-6</unit>
+  <GUIstep>0.002</GUIstep>
+</device>

@@ -1,0 +1,6 @@
+<equipment class="ResolutionMockup">
+  <device hwrid="/DtoX" role="detm"/>
+  <device hwrid="/DtoX" role="dtox"/>
+  <device hwrid="/energy" role="energy"/>
+</equipment>
+

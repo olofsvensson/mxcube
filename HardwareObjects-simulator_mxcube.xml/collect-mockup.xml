@@ -5,6 +5,7 @@
   <object href="/diffractometer-mockup" role="diffractometer"/>
   <object href="/mach" role="machine_current"/>
   <object href="/flux" role="flux"/>
+  <object href="/attenuators" role="transmission"/>
 
   <input_files_server>localhost:5698</input_files_server>
   
@@ -26,11 +27,11 @@
   <auto_processing>
     <program>
       <executable>/opt/pxsoft/bin/autoproc_master.pl</executable>
-      <event>before image after end_multicollect</event>
+      <event>before after end_multicollect</event>
     </program>
     <program>
-      <executable>/users/opid30/git/mxcube/bin/autoproc-launcher.py</executable>
-      <event>before</event>
+      <executable>/scisoft/users/svensson/git/mxcube/bin/autoproc-launcher.py</executable>
+      <event>after</event>
     </program> 
   </auto_processing>
 </device>

@@ -1,8 +1,0 @@
-<object>
-  <StartEdnaCommand>/users/opid30/git/mxcube/bin/edna_script.sh</StartEdnaCommand>
-  <edna_default_file>/users/opid30/git/mxcube/HardwareObjects-simulator_mxcube.xml/edna_defaults.xml</edna_default_file>
-  <fluxSource>currentFlux</fluxSource>
-
-  <!--  <device href="/mxlocal" role="beamline_pars"/>   -->
-  <device href="/collect-mockup" role="dataCollect"/>
-</object>

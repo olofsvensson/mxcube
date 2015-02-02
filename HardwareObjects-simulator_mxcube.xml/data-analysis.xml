@@ -1,5 +1,5 @@
 <object class="DataAnalysis">
   <!-- Path to script that launches edna -->
-  <edna_command>/users/opid30/git/mxcube/bin/edna_script.sh</edna_command>
-  <edna_default_file>/users/opid30/git/mxcube/HardwareObjects-simulator_mxcube.xml/edna_defaults.xml</edna_default_file>
+  <edna_command>/scisoft/users/svensson/git/mxcube/bin/edna_script.sh</edna_command>
+  <edna_default_file>/scisoft/users/svensson/git/mxcube/HardwareObjects-simulator_mxcube.xml/edna_defaults.xml</edna_default_file>
 </object>

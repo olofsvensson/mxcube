@@ -1,6 +1,6 @@
 <object class="BeamlineSetup" role="BeamlineSetup">
   <!-- Objects directly associatd with hardware -->
-  <object href="/transmission-mockup" role="transmission"/>
+  <object href="/attenuators" role="transmission"/>
   <object href="/diffractometer-mockup" role="diffractometer"/>
   <object href="/sc-mockup" role="sample_changer"/>    
   <object href="/resolution-mockup" role="resolution"/>

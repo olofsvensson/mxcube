@@ -4,6 +4,6 @@
 <fluxSource>currentFlux</fluxSource>
 
   <device href="/mxlocal" role="beamline_pars"/>
-  <device href="/mxcollect" role="dataCollect"/>
+  <device href="/collect-mockup" role="dataCollect"/>
 
 </procedure>

@@ -1,0 +1,4 @@
+<device class = "MotorMockup">
+  <username>Focus</username>
+  <GUIstep>0.01</GUIstep>
+</device>

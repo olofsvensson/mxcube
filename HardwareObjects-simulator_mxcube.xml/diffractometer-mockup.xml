@@ -2,5 +2,21 @@
 <equipment class="DiffractometerMockup">
   <username>Diffractometer</username>
 
-  <object href="/mockup_camera" role="camera"></object>
+  <object href="/camera-mockup" role="camera"></object>
+  <phi-shutter>
+      <device role="phi" href="/phi"></device>
+      <device role="phiz" href="/phiz"></device>
+  </phi-shutter>
+  <sample>
+      <device role="zoom" href="/zoom"></device>
+      <device role="light" href="/light"></device>
+      <device role="flight" href="/flight"></device>
+      <device role="focus" href="/focus"></device>
+      <device role="phiy" href="/length"></device>  
+      <device role="sampx" href="/sampx"></device>
+      <device role="sampy" href="/sampy"></device>
+      <device role="kappa" href="/kappa"></device>
+      <device role="kappa_phi" href="/kappa_phi"></device>
+  </sample>
+  <aperture>/apzy</aperture>
 </equipment>

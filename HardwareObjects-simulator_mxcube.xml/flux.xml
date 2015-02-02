@@ -1,3 +1,4 @@
 <device class="PhotonFluxMockup">
   <username>Photon flux</username>
+  <object role="aperture" href="/apzy"/>
 </device> 
