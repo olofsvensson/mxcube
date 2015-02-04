@@ -335,7 +335,7 @@ class AbstractMultiCollect(object):
     @abc.abstractmethod
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-      pass
+        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
        
     @abc.abstractmethod
@@ -647,7 +647,7 @@ class AbstractMultiCollect(object):
                     logging.getLogger("HWR").exception("Could not store data collection into LIMS")
 
             if self.bl_control.lims and self.bl_config.input_files_server:
-                self.write_input_files(self.collection_id, wait=False) 
+                self.write_input_files(self.collection_id, wait=True) 
 
             # at this point input files should have been written           
             if data_collect_parameters.get("processing", False)=="True":
@@ -781,12 +781,11 @@ class AbstractMultiCollect(object):
                                                  data_collect_parameters["EDNA_files_dir"],
                                                  data_collect_parameters["anomalous"],
                                                  data_collect_parameters["residues"],
-                                                 "reference_interval" in data_collect_parameters["oscillation_sequence"][0],
                                                  data_collect_parameters["do_inducedraddam"],
                                                  data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
                                                  data_collect_parameters.get("sample_reference", {}).get("cell", ""))
                 except:
-                  pass
+                  raise
                 else:
                    collections_analyse_params.append((self.collection_id,
                                                       self.xds_directory, 
