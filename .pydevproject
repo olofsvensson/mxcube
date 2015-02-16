@@ -9,5 +9,7 @@
 <path>/mxcube/HardwareObjects</path>
 <path>/mxcube</path>
 <path>/mxcube/HardwareRepository</path>
+<path>/mxcube/BlissFramework</path>
+<path>/mxcube</path>
 </pydev_pathproperty>
 </pydev_project>

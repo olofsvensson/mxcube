@@ -81,6 +81,7 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
             self.emit("collectNumberOfFrames", number_of_images) 
         start_image_number = oscillation_parameters["start_image_number"]
         first_image_no = start_image_number
+        reference_image = None
         if "BurnStrategy" in directory:
             if  template.startswith("ref-"):
                 reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/ref-x_1_%04d.cbf" % first_image_no
@@ -94,7 +95,7 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
             reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/mesh-opid30a1_1_%04d.cbf" % first_image_no
         elif  template.startswith("ref-"):
             reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/ref-opid30a1_4_%04d.cbf" % first_image_no
-        else:
+        if reference_image is None:
             reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/opid30a1_1_%04d.cbf" % first_image_no
         # Read the header
         dictHeader = self.readHeaderPilatus(reference_image)

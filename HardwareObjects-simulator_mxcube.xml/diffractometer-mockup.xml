@@ -3,6 +3,8 @@
   <username>Diffractometer</username>
 
   <object href="/camera-mockup" role="camera"></object>
+  <beam_info>/beam-info-mockup</beam_info>
+  <samplechanger>/sc-mockup</samplechanger>
   <phi-shutter>
       <device role="phi" href="/phi"></device>
       <device role="phiz" href="/phiz"></device>
