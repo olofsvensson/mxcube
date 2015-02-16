@@ -9,9 +9,12 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
     def init(self): 
         BeamInfo.BeamInfo.init(self)
  
-        self.beam_size_slits = [0.1, 0.05]
+        self.beam_size_slits = map(float,self.getProperty("beam_size_slits").split()) #[0.1, 0.05]
         self.camera = self.getDeviceByRole("camera")
         self.beam_position = (self.camera.getWidth() / 2, self.camera.getHeight() / 2)
+
+    def get_beam_position(self):
+        return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):
         return

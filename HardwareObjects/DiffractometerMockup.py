@@ -28,18 +28,18 @@ class myimage:
         self.img = self.drawing.getPPP()
 
         if filename is None:
-          fd, name = tempfile.mkstemp()
-          os.close(fd)
+        fd, name = tempfile.mkstemp()
+        os.close(fd)
         else:
           name = filename
 
         QubImageSave.save(name, self.img, self.drawing.canvas(), self.zoom, "JPEG")
 
         if filename is None:
-          f = open(name, "r")
-          self.imgcopy = f.read()
-          f.close()
-          os.unlink(name)
+        f = open(name, "r")
+        self.imgcopy = f.read()
+        f.close()
+        os.unlink(name)
 
     def __str__(self):
         self.save()
@@ -113,7 +113,7 @@ class DiffractometerMockup(Equipment):
         self.currentSampleInfo = None
         self.aperture = None
         self.beam_info = None
-      
+
 #        self.pixelsPerMmY=None
 #        self.pixelsPerMmZ=None
         self.pixelsPerMmY=320
@@ -124,24 +124,24 @@ class DiffractometerMockup(Equipment):
         self.user_confirms_centring = True
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
-        self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
+        self.connect(self, 'equipmentNotReady', self.equipmentNotReady)
 
 
     def init(self):
         self.centringMethods={DiffractometerMockup.MANUAL3CLICK_MODE: self.start3ClickCentring,\
             DiffractometerMockup.C3D_MODE: self.startAutoCentring }
         self.cancelCentringMethods={}
-
+         
         self.currentCentringProcedure = None
         self.currentCentringMethod = None
-
+        
         self.centringStatus={"valid":False}
 
         try:
           phiz_ref = self["centringReferencePosition"].getProperty("phiz")
         except:
           phiz_ref = None
-        
+
         self.phiMotor = self.getDeviceByRole('phi')
         self.phizMotor = self.getDeviceByRole('phiz')
         self.phiyMotor = self.getObjectByRole("phiy")
@@ -241,7 +241,7 @@ class DiffractometerMockup(Equipment):
 #    def save_snapshot(self, filename):
 #        img = myimage(self._drawing)
 #        img.save(filename)
-    
+
     def save_snapshot(self, filename):
         snapshotReferenceDir = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20150123/PROCESSED_DATA/RibBio/RibBio-S9/MXPressE_01"
         phi = self.phiMotor.getPosition()
@@ -260,13 +260,13 @@ class DiffractometerMockup(Equipment):
             if not os.path.exists(fileDirectory):
                 os.makedirs(fileDirectory)
             shutil.copyfile(snapShotFilePath, filename)
-
+	
     def setSampleInfo(self, sample_info):
         self.currentSampleInfo = sample_info
 
     def emitDiffractometerMoved(self, *args):
-      self.emit("diffractometerMoved", ())
-        
+        self.emit("diffractometerMoved", ())
+	
     def isReady(self):
         return self.isValid() and not any([m.motorIsMoving() for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor)])
     
@@ -376,7 +376,7 @@ class DiffractometerMockup(Equipment):
         if time.time() - self.centredTime > 1.0:
            self.invalidateCentring()
 
-
+  
     def sampleChangerSampleIsLoaded(self, state):
         if time.time() - self.centredTime > 1.0:
            self.invalidateCentring()
@@ -406,14 +406,14 @@ class DiffractometerMockup(Equipment):
             logging.getLogger("HWR").error("MiniDiff: already in centring method %s" % self.currentCentringMethod)
             return
         
-        curr_time=time.strftime("%Y-%m-%d %H:%M:%S")
+        curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.centringStatus={"valid":False, "startTime":curr_time}
 
         self.emitCentringStarted(method)
 
         try:
             fun=self.centringMethods[method]
-        except KeyError,diag:
+        except KeyError, diag:
             logging.getLogger("HWR").error("MiniDiff: unknown centring method (%s)" % str(diag))
             self.emitCentringFailed()
         else:
@@ -468,7 +468,7 @@ class DiffractometerMockup(Equipment):
                                                                          
         self.currentCentringProcedure.link(self.manualCentringDone)
 
-  
+
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
         phi_angle = math.radians(self.centringPhi.direction*self.centringPhi.getPosition()) 
@@ -487,7 +487,7 @@ class DiffractometerMockup(Equipment):
         y = dy + (phiz * self.pixelsPerMmZ) + beam_pos_y
 
         return x, y
- 
+   
     def manualCentringDone(self, manual_centring_procedure):
         try:
             pass
@@ -502,15 +502,15 @@ class DiffractometerMockup(Equipment):
           self.emitCentringMoving()
           try:
             sample_centring.end()
-          except:
+        except:
             logging.exception("Could not move to centred position")
             self.emitCentringFailed()
-          
+
           #logging.info("EMITTING CENTRING SUCCESSFUL")
           self.centredTime = time.time()
           self.emitCentringSuccessful()
           self.emitProgressMessage("")
-
+	
     def autoCentringDone(self, auto_centring_procedure): 
         self.emitProgressMessage("")
         self.emit("newAutomaticCentringPoint", (-1,-1))
@@ -562,13 +562,13 @@ class DiffractometerMockup(Equipment):
 
     def emitCentringStarted(self,method):
         self.currentCentringMethod=method
-        self.emit('centringStarted', (method,False))
+        self.emit('centringStarted', (method, False))
 
     def acceptCentring(self):
         self.centringStatus["valid"]=True
         self.centringStatus["accepted"]=True
         self.emit('centringAccepted', (True,self.getCentringStatus()))
-
+	
     def rejectCentring(self):
         if self.currentCentringProcedure:
           self.currentCentringProcedure.kill()
@@ -588,7 +588,7 @@ class DiffractometerMockup(Equipment):
 
     def emitCentringSuccessful(self):
         if self.currentCentringProcedure is not None:
-            curr_time=time.strftime("%Y-%m-%d %H:%M:%S")
+            curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centringStatus["endTime"]=curr_time
             self.centringStatus["motors"]=self.getPositions()
 #            centred_pos = self.currentCentringProcedure.get()
@@ -601,7 +601,7 @@ class DiffractometerMockup(Equipment):
 
             self.centringStatus["method"]=self.currentCentringMethod
             self.centringStatus["valid"]=True
-            
+
             method=self.currentCentringMethod
             self.emit('centringSuccessful', (method,self.getCentringStatus()))
             self.currentCentringMethod = None
@@ -629,7 +629,7 @@ class DiffractometerMockup(Equipment):
                "kappa": self.kappaMotor.getPosition(),
                "kappa_phi": self.kappaPhiMotor.getPosition(),    
                "zoom": self.zoomMotor.getPosition()}
-    
+
 
     def moveMotors(self, roles_positions_dict):
         motor = { "phi": self.phiMotor,
@@ -641,31 +641,31 @@ class DiffractometerMockup(Equipment):
                   "kappa": self.kappaMotor,
                   "kappa_phi": self.kappaPhiMotor,
                   "zoom": self.zoomMotor }
-   
+
         for role, pos in roles_positions_dict.iteritems():
            m = motor.get(role)
            if m is not None:
              m.move(pos)
- 
+
         # TODO: remove this sleep, the motors states should
         # be MOVING since the beginning (or READY if move is
         # already finished) 
         time.sleep(1)
- 
+
         while not all([m.getState() == m.READY for m in motor.itervalues() if m is not None]):
            time.sleep(0.1)
-
-
+  
+     
     def takeSnapshots(self, image_count, wait=False):
         self.camera.forceUpdate = True
-        
+
         snapshotsProcedure = gevent.spawn(take_snapshots, image_count, self.lightWago, self.lightMotor ,self.phiMotor,self.zoomMotor,self._drawing)
         self.emit('centringSnapshots', (None,))
         self.emitProgressMessage("Taking snapshots")
         self.centringStatus["images"]=[]
         snapshotsProcedure.link(self.snapshotsDone)
 
-        if wait:
+            if wait:
           self.centringStatus["images"] = snapshotsProcedure.get()
 
  
@@ -676,10 +676,10 @@ class DiffractometerMockup(Equipment):
            self.centringStatus["images"] = snapshotsProcedure.get()
         except:
            logging.getLogger("HWR").exception("MiniDiff: could not take crystal snapshots")
-           self.emit('centringSnapshots', (False,))
+            self.emit('centringSnapshots', (False,))
            self.emitProgressMessage("")
         else:
-           self.emit('centringSnapshots', (True,))
+            self.emit('centringSnapshots', (True,))
            self.emitProgressMessage("")
         self.emitProgressMessage("Sample is centred!")
         #self.emit('centringAccepted', (True,self.getCentringStatus()))

@@ -1,4 +1,5 @@
 from ESRFMultiCollect import *
+import HardwareRepository
 from detectors.LimaPilatus import Pilatus
 import gevent
 import shutil
@@ -23,10 +24,6 @@ class ID30MultiCollect(ESRFMultiCollect):
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
       self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
-
-    @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
     def get_beam_size(self):
@@ -68,6 +65,7 @@ class ID30MultiCollect(ESRFMultiCollect):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
         cover_task = self.getObjectByRole("eh_controller").detcover.set_out(wait=False, timeout=15)
+
         self.getObjectByRole("beamstop").moveToPosition("in")
         self.getObjectByRole("light").wagoOut()
 
@@ -99,17 +97,11 @@ class ID30MultiCollect(ESRFMultiCollect):
     def set_helical_pos(self, helical_oscil_pos):
         self.helical_pos = helical_oscil_pos
 
-    def get_flux(self):
-        return 1E12
-
     def set_transmission(self, transmission):
     	self.getObjectByRole("transmission").set_value(transmission)
 
     def get_transmission(self):
         return self.getObjectByRole("transmission").get_value()
-
-    def get_cryo_temperature(self):
-        return 0
 
     @task
     def prepare_intensity_monitors(self):

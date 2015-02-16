@@ -12,13 +12,12 @@ class MotorMockup(Device):
         Device.__init__(self, name)
         self.motorState = MotorMockup.READY
 
-
     def init(self): 
         self.motorState = MotorMockup.READY
         self.username = self.name()
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.name()
-        self.position = 0
+        self.motorPosition = 0
 
     def getState(self):
         return self.motorState
@@ -30,17 +29,16 @@ class MotorMockup(Device):
         return (-1E3, 1E3)
 
     def getPosition(self):
-        return self.position
+        return self.motorPosition
 
     def getDialPosition(self):
         return self.getPosition()
 
     def move(self, position):
-        self.position = position
-        time.sleep(1)
-        self.emit('positionChanged', (self.position, ))
+        self.motorPosition = position
+        self.emit('positionChanged', (self.motorPosition, ))
         self.emit('stateChanged', (self.motorState, ))
-        return
+
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
@@ -52,7 +50,7 @@ class MotorMockup(Device):
         pass
 
     def syncMove(self, position, timeout=None):
-        self.position = position
+        self.motorPosition = position
         return
 
     def motorIsMoving(self):

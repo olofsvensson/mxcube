@@ -686,7 +686,7 @@ class AbstractMultiCollect(object):
                   file_location = file_parameters["directory"]
                   file_path  = os.path.join(file_location, filename)
 
-                  self.set_detector_filenames(frame, frame_start, file_path, jpeg_full_path, jpeg_thumbnail_full_path)
+                  self.set_detector_filenames(frame, frame_start, str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path))
                   osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
 
                   with error_cleanup(self.reset_detector):
@@ -734,7 +734,6 @@ class AbstractMultiCollect(object):
                           last_image_saved = self.last_image_saved()
                           frame = max(start_image_number+1, start_image_number+last_image_saved-1)
                           self.emit("collectImageTaken", frame)
-                          logging.info("J=%d", j)
                           j = wedge_size - last_image_saved
                       else:
                           j -= 1
