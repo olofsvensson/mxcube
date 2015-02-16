@@ -404,8 +404,8 @@ class HutchMenuBrick(BlissWidget):
         self.buttonReject.setEnabled(False)
 
     def centringAccepted(self,state,centring_status):
-        if self.collectObj is not None:
-            self.collectObj.setCentringStatus(centring_status)
+#        if self.collectObj is not None:
+#            self.collectObj.setCentringStatus(centring_status)
         self.buttonAccept.setEnabled(False)
         self.buttonReject.setEnabled(False)
         if self.insideDataCollection:
@@ -490,8 +490,8 @@ class HutchMenuBrick(BlissWidget):
             self.buttonAccept.setPaletteBackgroundColor(widget_colors.LIGHT_GREEN)
             self.buttonReject.setPaletteBackgroundColor(widget_colors.LIGHT_RED)
 
-        if self.collectObj is not None:
-            self.collectObj.setCentringStatus(centring_status)
+#        if self.collectObj is not None:
+#            self.collectObj.setCentringStatus(centring_status)
 
         self.isMoving=False
         self.sampleCentreBox.setEnabled(True)

@@ -359,8 +359,8 @@ class DrawingEvent(QubDrawingEvent):
                 clicked_shape = shape
                 break
 
-        self.move_to_centred_position_cb(clicked_shape.\
-                                         get_centred_positions()[0])
+#        self.move_to_centred_position_cb(clicked_shape.\
+#                                         get_centred_positions()[0])
     def mousePressed(self, x, y):
         """
         Selects the shape the mouse is over when clicked, de selects

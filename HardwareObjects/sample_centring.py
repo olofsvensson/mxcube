@@ -174,13 +174,14 @@ def center(phi, phiy, phiz,
   return centred_pos
 
 def end(centred_pos=None):
-  if centred_pos is None:
-      centred_pos = CURRENT_CENTRING.get()
-  try:
-    move_motors(centred_pos)
-  except:
-    move_motors(SAVED_INITIAL_POSITIONS)
-    raise
+    pass
+#  if centred_pos is None:
+#      centred_pos = CURRENT_CENTRING.get()
+#  try:
+#    move_motors(centred_pos)
+#  except:
+#    move_motors(SAVED_INITIAL_POSITIONS)
+#    raise
 
 def start_auto(camera,  centring_motors_dict,
                pixelsPerMm_Hor, pixelsPerMm_Ver, 
@@ -208,12 +209,16 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
   snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
   camera.takeSnapshot(snapshot_filename, bw=True)
 
-  info, x, y = lucid.find_loop(snapshot_filename, debug=False,pixels_per_mm_horizontal=pixelsPerMm_Hor, chi_angle=chi_angle)
-  
-  if callable(msg_cb):
-    msg_cb("Loop found: %s (%d, %d)" % (info, x, y))
-  if callable(new_point_cb):
-    new_point_cb((x,y))
+  if os.path.exists(snapshot_filename):
+      info, x, y = lucid.find_loop(snapshot_filename, debug=False,pixels_per_mm_horizontal=pixelsPerMm_Hor, chi_angle=chi_angle)
+      
+      if callable(msg_cb):
+        msg_cb("Loop found: %s (%d, %d)" % (info, x, y))
+      if callable(new_point_cb):
+        new_point_cb((x,y))
+  else:
+      x = 100
+      y = 100
         
   return x, y
 
