@@ -35,9 +35,10 @@ class MotorMockup(Device):
         return self.getPosition()
 
     def move(self, position):
-        self.motorPosition = position
-        self.emit('positionChanged', (self.motorPosition, ))
-        self.emit('stateChanged', (self.motorState, ))
+        if position is not None:
+            self.motorPosition = position
+            self.emit('positionChanged', (self.motorPosition, ))
+            self.emit('stateChanged', (self.motorState, ))
 
 
     def moveRelative(self, relativePosition):
@@ -50,8 +51,8 @@ class MotorMockup(Device):
         pass
 
     def syncMove(self, position, timeout=None):
-        self.motorPosition = position
-        return
+        if position is not None:
+            self.motorPosition = position
 
     def motorIsMoving(self):
         return self.motorState == 'MOVING'

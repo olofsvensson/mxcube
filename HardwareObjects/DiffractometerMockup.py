@@ -28,18 +28,18 @@ class myimage:
         self.img = self.drawing.getPPP()
 
         if filename is None:
-        fd, name = tempfile.mkstemp()
-        os.close(fd)
+            fd, name = tempfile.mkstemp()
+            os.close(fd)
         else:
-          name = filename
+            name = filename
 
         QubImageSave.save(name, self.img, self.drawing.canvas(), self.zoom, "JPEG")
 
         if filename is None:
-        f = open(name, "r")
-        self.imgcopy = f.read()
-        f.close()
-        os.unlink(name)
+            f = open(name, "r")
+            self.imgcopy = f.read()
+            f.close()
+            os.unlink(name)
 
     def __str__(self):
         self.save()
@@ -502,7 +502,7 @@ class DiffractometerMockup(Equipment):
           self.emitCentringMoving()
           try:
             sample_centring.end()
-        except:
+          except:
             logging.exception("Could not move to centred position")
             self.emitCentringFailed()
 
@@ -665,7 +665,7 @@ class DiffractometerMockup(Equipment):
         self.centringStatus["images"]=[]
         snapshotsProcedure.link(self.snapshotsDone)
 
-            if wait:
+        if wait:
           self.centringStatus["images"] = snapshotsProcedure.get()
 
  
@@ -676,10 +676,10 @@ class DiffractometerMockup(Equipment):
            self.centringStatus["images"] = snapshotsProcedure.get()
         except:
            logging.getLogger("HWR").exception("MiniDiff: could not take crystal snapshots")
-            self.emit('centringSnapshots', (False,))
+           self.emit('centringSnapshots', (False,))
            self.emitProgressMessage("")
         else:
-            self.emit('centringSnapshots', (True,))
+           self.emit('centringSnapshots', (True,))
            self.emitProgressMessage("")
         self.emitProgressMessage("Sample is centred!")
         #self.emit('centringAccepted', (True,self.getCentringStatus()))

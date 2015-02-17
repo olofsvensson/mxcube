@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<object>
+<object class="Pilatus">
   <manufacturer>DECTRIS</manufacturer>
   <type>pilatus</type>
   <model>Pilatus_6M_F</model>

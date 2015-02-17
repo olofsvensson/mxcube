@@ -71,8 +71,8 @@ class XMLRPCServer(HardwareObject):
     def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
-        if hasattr(self, "_server" ):
-          return
+#        if hasattr(self, "_server" ):
+#          return
         self.xmlrpc_prefixes = set()
         self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
 

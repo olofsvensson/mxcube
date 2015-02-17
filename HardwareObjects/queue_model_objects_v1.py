@@ -534,7 +534,7 @@ class DataCollection(TaskNode):
         """
         if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL:
             start_index, end_index = self.get_helical_point_index()
-            display_name = "%s (Line - %d:%d)" %(self.get_name(), start_index, end_index)
+            display_name = "%s (Line - %r:%r)" %(self.get_name(), start_index, end_index)
         elif self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
             display_name = "%s (%s)" %(self.get_name(), self.grid_id)
         else:

@@ -87,3 +87,6 @@ class EnergyScanMockup(Equipment):
         Descript. :
         """
         return self.scanData
+
+    def get_value(self):
+        return self.getCurrentEnergy()
