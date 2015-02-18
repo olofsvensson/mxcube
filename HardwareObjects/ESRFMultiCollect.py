@@ -5,6 +5,7 @@ import logging
 import time
 import os
 import httplib
+import urllib
 import math
 
 class FixedEnergy:
@@ -299,7 +300,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                       minimum_exposure_time = self.bl_control.detector.getProperty("minimum_exposure_time"),
                                       detector_fileext = self.bl_control.detector.getProperty("file_suffix"),
                                       detector_type = self.bl_control.detector.getProperty("type"),
-                                      detector_mode = 1,
                                       detector_manufacturer = self.bl_control.detector.getProperty("manufacturer"),
                                       detector_model = self.bl_control.detector.getProperty("model"),
                                       detector_px = self.bl_control.detector.getProperty("px"),
@@ -307,8 +307,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                       undulators = undulators,
                                       focusing_optic = self.getProperty('focusing_optic'),
                                       monochromator_type = self.getProperty('monochromator'),
-                                      beam_divergence_vertical = self.getProperty('beam_divergence_vertical'),
-                                      beam_divergence_horizontal = self.getProperty('beam_divergence_horizontal'),     
+                                      beam_divergence_vertical = self.bl_control.beam_info.getProperty('beam_divergence_vertical'),
+                                      beam_divergence_horizontal = self.bl_control.beam_info.getProperty('beam_divergence_horizontal'),     
                                       polarisation = self.getProperty('polarisation'),
                                       input_files_server = self.getProperty("input_files_server"))
   
@@ -710,6 +710,31 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_flux(self):
         return self.bl_control.flux.getCurrentFlux()
+
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        directories = filename.split(os.path.sep)
+        try:
+            if directories[2]=='visitor':
+                beamline = directories[4]
+                proposal = directories[3]
+            else:
+                beamline = directories[2]
+                proposal = directories[4]
+        except:
+            beamline = "unknown"
+            proposal = "unknown" 
+        conn = httplib.HTTPConnection("mxedna.esrf.fr",37180)
+        params = urllib.urlencode({"image_path":filename,
+                                   "jpeg_path":jpeg_path,
+                                   "jpeg_thumbnail_path":jpeg_thumbnail_path,
+                                   "initiator": beamline,
+                                   "externalRef": proposal,
+                                   "reuseCase": "true" })
+        conn.request("POST", 
+                     "/BES/bridge/rest/processes/CreateThumbnails/RUN?%s" % params, 
+                     headers={"Accept":"text/plain"})
+        r = conn.getresponse()
 
     """
     getOscillation

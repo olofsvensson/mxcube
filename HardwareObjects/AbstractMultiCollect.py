@@ -33,7 +33,6 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'minimum_exposure_time',
                                          'detector_fileext',
                                          'detector_type',
-                                         'detector_mode',
                                          'detector_manufacturer',
                                          'detector_model',
                                          'detector_px',
@@ -52,7 +51,7 @@ class AbstractMultiCollect(object):
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None]*14)
-        self.bl_config = BeamlineConfig(*[None]*17)
+        self.bl_config = BeamlineConfig(*[None]*16)
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
@@ -71,6 +70,15 @@ class AbstractMultiCollect(object):
     @task
     def data_collection_hook(self, data_collect_parameters):
       pass
+
+   
+    @task
+    def set_detector_mode(self, detector_mode):
+        """
+        Descript. :
+        """
+        if self.bl_control.detector is not None:
+            self.bl_control.detector.set_detector_mode(detector_mode)
 
 
     @abc.abstractmethod
@@ -280,6 +288,12 @@ class AbstractMultiCollect(object):
     @abc.abstractmethod
     def store_image_in_lims(self, frame, first_frame, last_frame):
       pass
+
+    
+    @abc.abstractmethod
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        pass
     
 
     def get_sample_info_from_parameters(self, parameters):
@@ -597,6 +611,9 @@ class AbstractMultiCollect(object):
 
         self.close_fast_shutter()
 
+        # 0: software binned, 1: unbinned, 2:hw binned
+        self.set_detector_mode(data_collect_parameters["detector_mode"])
+
         self.move_motors(motors_to_move_before_collect)
 
         with cleanup(self.data_collection_cleanup):
@@ -712,9 +729,11 @@ class AbstractMultiCollect(object):
                             lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
 
                           try:
-                            self.bl_control.lims.store_image(lims_image)
+                              self.bl_control.lims.store_image(lims_image)
                           except:
-                            logging.getLogger("HWR").exception("Could not store store image in LIMS")
+                              logging.getLogger("HWR").exception("Could not store store image in LIMS")
+                          
+                          self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
                 
                       if data_collect_parameters.get("processing", False)=="True":
                         self.trigger_auto_processing("image",
@@ -734,13 +753,16 @@ class AbstractMultiCollect(object):
                           last_image_saved = self.last_image_saved()
                           frame = max(start_image_number+1, start_image_number+last_image_saved-1)
                           self.emit("collectImageTaken", frame)
-                          j = wedge_size - last_image_saved
+                          new_j = wedge_size - last_image_saved
+                          if new_j < 1 and j > 1:
+                              # make sure to do finalization
+                              j = 1
+                          else:
+                              j = new_j
                       else:
                           j -= 1
                           self.emit("collectImageTaken", frame)
                           frame += 1
-                          if j == 0:
-                            break
 
                 
     @task
@@ -811,12 +833,6 @@ class AbstractMultiCollect(object):
               self.__safety_shutter_close_task = gevent.spawn_later(10*60, self.close_safety_shutter, timeout=10)
             except:
               logging.exception("Could not close safety shutter")
-
-            #if callable(finished_callback):
-            #   try:
-            #     finished_callback()
-            #   except:
-            #     logging.getLogger("HWR").exception("Exception while calling finished callback")
         finally:
            self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
            self.emit("collectReady", (True, ))
