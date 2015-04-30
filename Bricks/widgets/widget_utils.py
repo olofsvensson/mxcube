@@ -133,7 +133,7 @@ class DataModelInputBinder(object):
             widget = value[0]
             validator = value[1]
             
-            if validator:
+            if validator and key != "osc_start":
                 if isinstance(widget, qt.QLineEdit):
                     if not self.__validated(validator,
                                             widget, 

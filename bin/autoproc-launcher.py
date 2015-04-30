@@ -21,6 +21,8 @@ import os.path
 import tempfile
 import subprocess
 import time
+import httplib
+import urllib
 
 import logging
 from logging.handlers import HTTPHandler
@@ -184,7 +186,7 @@ export ISPyB_user="opid231"
 export ISPyB_pass="tonic231"
 
 cd {path}
-/opt/pxsoft/bin/edna-plugin-launcher --inputFile {dm_path} --execute EDPluginControlAutoprocv1_0 --debug
+/opt/pxsoft/bin/edna-plugin-launcher --inputFile {dm_path} --execute EDPluginControlAutoprocv1_0 
 '''
 
 script_file.file.write(script_template.format(path=path, dm_path=dm_path))
@@ -192,12 +194,34 @@ script_path = script_file.name
 os.chmod(script_path, S_IRWXU|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH)
 
 
-# now that everything's in place we need to call oarsub
-#command_line = ['oarsub', '-p', 'private_node=\'MX\'', '-d', path, script_path]
-#command_line = ['oarsub', '-p', 'private_node=\'MX\'', '-l', 'core=6,walltime=0:30:0', '-d', path, script_path]
+BES_HOST = "mxedna.esrf.fr"
+BES_PORT = 8080
 
-# this is horrible
-command_line = 'nohup ssh -f mxnice {script_path} 2>&1 > /dev/null &'.format(script_path=script_path)
-logging.debug('going to run "{0}"'.format(command_line))
-code = subprocess.call(command_line, shell=True)
-logging.debug('the command returned {0}'.format(code))
+directories = path.split(os.path.sep)
+try:
+    if directories[2]=='visitor':
+        beamline = directories[4]
+        proposal = directories[3]
+    else:
+        beamline = directories[2]
+        proposal = directories[4]
+except:
+    beamline = "unknown"
+    proposal = "unknown" 
+
+conn = httplib.HTTPConnection(BES_HOST, BES_PORT)
+params = urllib.urlencode({"ednaDpLaunchPath":os.path.join(path, script_path),
+                           "beamline": beamline,
+                           "proposal": proposal,
+                           "initiator": beamline,
+                           "externalRef": proposal,
+                           "reuseCase": "true" })
+conn.request("POST", 
+             "/BES/bridge/rest/processes/EDNA_dp/RUN?%s" % params, 
+             headers={"Accept":"text/plain"})
+response = conn.getresponse()
+if response.status != 200:
+    print("ERROR! RUN response status = {0}".format(response.status))
+
+
+

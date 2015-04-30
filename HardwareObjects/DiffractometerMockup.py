@@ -243,7 +243,7 @@ class DiffractometerMockup(Equipment):
 #        img.save(filename)
 
     def save_snapshot(self, filename):
-        snapshotReferenceDir = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20150123/PROCESSED_DATA/RibBio/RibBio-S9/MXPressE_01"
+        snapshotReferenceDir = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20150306/PROCESSED_DATA/AV16/AV16-ON-1860734-5/MXPressE_01"
         phi = self.phiMotor.getPosition()
         phiy = self.phiyMotor.getPosition()
         if phiy > 0.5:

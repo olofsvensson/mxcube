@@ -4,6 +4,7 @@ import errno
 import abc
 import shutil
 import httplib
+import urllib
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
@@ -50,7 +51,6 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
                                       minimum_exposure_time = self.getProperty("minimum_exposure_time"),
                                       detector_fileext = self.getProperty("detector_fileext"),
                                       detector_type = self.getProperty("detector_type"),
-                                      detector_mode = 1,
                                       detector_manufacturer = self.getProperty("detector_manufacturer"),
                                       detector_model = self.getProperty("detector_model"),
                                       detector_px = self.getProperty("detector_px"),
@@ -152,7 +152,6 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
                                       minimum_exposure_time = self.getProperty("minimum_exposure_time"),
                                       detector_fileext = detector_fileext,
                                       detector_type = detector_type,
-                                      detector_mode = 1,
                                       detector_manufacturer = detector_manufacturer,
                                       detector_model = detector_model,
                                       detector_px = self._detector_px,
@@ -580,3 +579,27 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
             stac_om_file.close()
             os.chmod(stac_om_input_file, 0666)
 
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        directories = filename.split(os.path.sep)
+        try:
+            if directories[2]=='visitor':
+                beamline = directories[4]
+                proposal = directories[3]
+            else:
+                beamline = directories[2]
+                proposal = directories[4]
+        except:
+            beamline = "unknown"
+            proposal = "unknown" 
+        conn = httplib.HTTPConnection("mxedna.esrf.fr",8080)
+        params = urllib.urlencode({"image_path":filename,
+                                   "jpeg_path":jpeg_path,
+                                   "jpeg_thumbnail_path":jpeg_thumbnail_path,
+                                   "initiator": beamline,
+                                   "externalRef": proposal,
+                                   "reuseCase": "true" })
+        conn.request("POST", 
+                     "/BES/bridge/rest/processes/CreateThumbnails/RUN?%s" % params, 
+                     headers={"Accept":"text/plain"})
+        r = conn.getresponse()

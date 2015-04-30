@@ -4,7 +4,7 @@
 import os, sys, time, httplib, urllib
 
 PLUGIN_NAME = "EDPluginControlInterfaceToMXCuBEv1_3"
-BES_HOST = "mxhpc2-1601.esrf.fr"
+BES_HOST = "mxedna.esrf.fr"
 BES_PORT = 8080
 
 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	
 	try:
 		ednaStartFile = open(ednaStartScriptFilePath, "w")
-		ednaStartFile.write("export EDNA_SITE=ESRF\n")
+		ednaStartFile.write("export EDNA_SITE=ESRF_ID30A2\n")
 		ednaStartFile.write("/opt/pxsoft/bin/edna-plugin-launcher  --execute EDPluginControlInterfaceToMXCuBEv1_3")
 		ednaStartFile.write(" --inputFile {0} --outputFile {1} --basedir {2} 2>&1\n".format(inputFile, outputFile, workingDirectory))
 		ednaStartFile.close()		

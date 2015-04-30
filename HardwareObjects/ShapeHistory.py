@@ -651,7 +651,8 @@ class Point(Shape):
         Draws a qub point in the sample video.
         """
         qub_point = None
-
+        if self._drawing is None:
+            return None
         try:
             qub_point, _ = QubAddDrawing(self._drawing, QubPointDrawingMgr, 
                                           QubCanvasTarget)
