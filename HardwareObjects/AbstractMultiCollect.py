@@ -408,6 +408,8 @@ class AbstractMultiCollect(object):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
 
+        self.close_fast_shutter()
+
         # reset collection id on each data collect
         self.collection_id = None
 
@@ -472,39 +474,18 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
-
-        centring_info = {}
-        try:
-            centring_status = self.diffractometer().getCentringStatus()
-        except:
-            pass
-        else:
-            centring_info = dict(centring_status)
-
-        #Save sample centring positions
-        motors = centring_info.get("motors", {})
-        extra_motors = centring_info.get("extraMotors", {})
-
-        positions_str = ""
-
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-        
-        for motor, pos in motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
-              # update 'motors' field, so diffractometer will move to centring pos.
-              motors_to_move_before_collect.update({motor: pos})
-        for motor, pos in extra_motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
-              motors_to_move_before_collect.update({motor: pos})
-          
+        # this is for the LIMS
+        positions_str = " ".join([motor+"="+("None" if pos is None else "%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
         data_collect_parameters['actualCenteringPosition'] = positions_str
+        ###
+        self.move_motors(motors_to_move_before_collect)
+
+        # take snapshots, then assign centring status (which contains images) to centring_info variable
+        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+        centring_info = self.bl_control.diffractometer.getCentringStatus()
+        # move *again* motors, since taking snapshots may change positions
+        self.move_motors(motors_to_move_before_collect)
 
         if self.bl_control.lims:
           try:
@@ -571,7 +552,9 @@ class AbstractMultiCollect(object):
                                                            oscillation_parameters["overlap"])
         nframes = sum([wedge_size for _, wedge_size in wedges_to_collect])
 
-        self.emit("collectNumberOfFrames", nframes) 
+        #Added exposure time for ProgressBarBrick. 
+        #Extra time for each collection needs to be added (in this case 0.04)
+        self.emit("collectNumberOfFrames", nframes, oscillation_parameters["exposure_time"] + 0.04)
 
         start_image_number = oscillation_parameters["start_image_number"]    
         last_frame = start_image_number + nframes - 1
@@ -609,12 +592,8 @@ class AbstractMultiCollect(object):
         elif 'detdistance' in oscillation_parameters:
           self.move_detector(oscillation_parameters["detdistance"])
 
-        self.close_fast_shutter()
-
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
-
-        self.move_motors(motors_to_move_before_collect)
 
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():

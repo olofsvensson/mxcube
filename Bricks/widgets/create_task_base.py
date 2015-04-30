@@ -259,7 +259,6 @@ class CreateTaskBase(qt.QWidget):
 
     def set_kappa_phi(self, kappa_phi):
         acq_widget = self.get_acquisition_widget()
-
         if self._item_is_group_or_sample() and acq_widget:
             acq_widget.update_kappa_phi(kappa_phi)
 
@@ -399,7 +398,11 @@ class CreateTaskBase(qt.QWidget):
                 self._data_path_widget.update_data_model(self._path_template)
 
             self.setDisabled(False)
-
+        elif isinstance(tree_item, queue_item.BasketQueueItem):
+            self.setDisabled(False)
+            self._path_template = copy.deepcopy(self._path_template)
+            if self._data_path_widget:
+                self._data_path_widget.update_data_model(self._path_template)
         elif isinstance(tree_item, queue_item.DataCollectionGroupQueueItem):
             self.setDisabled(True)
 
@@ -499,13 +502,14 @@ class CreateTaskBase(qt.QWidget):
                       ' from another task. Correct the problem before adding to queue')
             result = False
 
-        if self._acq_widget is not None:
+        #Decide how to make this more general 
+        """if self._acq_widget is not None:
             parameter_conflict =  self._acq_widget.check_parameter_conflict()
             if parameter_conflict:
                 logging.getLogger("user_level_log").\
                     error('One or several collection parameters are out of range. ' +\
                           'Correct the problem before adding to queue')
-                result = False
+                result = False"""
 
         return result
             
@@ -513,11 +517,10 @@ class CreateTaskBase(qt.QWidget):
     # a task. When a task_node is selected.
     def create_task(self, sample, shape):
         (tasks, sc) = ([], None)
-       
+
         try: 
             sample_is_mounted = self._beamline_setup_hwobj.sample_changer_hwobj.\
                                 getLoadedSample().getCoords() == sample.location
-
         except AttributeError:
             sample_is_mounted = False
 
@@ -544,7 +547,6 @@ class CreateTaskBase(qt.QWidget):
                     if isinstance(temp_tasks[0], queue_model_objects.DataCollection):
                         kappa = temp_tasks[0].acquisitions[0].acquisition_parameters.kappa
                         kappa_phi = temp_tasks[0].acquisitions[0].acquisition_parameters.kappa_phi
-                        print kappa, kappa_phi
                         if kappa and kappa_phi:
                             task_label = 'sample-centring (kappa: %0.2f, phi: %0.2f)' %(kappa, kappa_phi)
                     elif isinstance(temp_tasks[0], queue_model_objects.Characterisation):

@@ -379,6 +379,7 @@ class DataCollectTree(qt.QWidget):
             view_item.setOpen(True)
                 
         self.queue_model_hwobj.view_created(view_item, task)
+        self.collect_button.setDisabled(False)
 
     def get_selected_items(self):
         res = queue_item.perform_on_children(self.sample_list_view,
@@ -468,10 +469,14 @@ class DataCollectTree(qt.QWidget):
 
         try:
             dm = self.beamline_setup_hwobj.diffractometer_hwobj
+            dm.do_centring = True
         
             if self.centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                 dm.user_confirms_centring = False
             else:
+                if self.centring_method == CENTRING_METHOD.NO:
+                  dm.do_centring = False
+                  dm.user_confirms_centring = False
                 dm.user_confirms_centring = True
         except AttributeError:
             #beamline_setup_hwobj not set when method called
@@ -634,7 +639,9 @@ class DataCollectTree(qt.QWidget):
 
         if children:
             self.delete_click(selected_items = children)
-
+      
+        if len(self.get_checked_items()) == 0:
+            self.collect_button.setDisabled(True)
         self.check_for_path_collisions()
 
     def set_first_element(self):
@@ -738,8 +745,10 @@ class DataCollectTree(qt.QWidget):
             self.queue_model_hwobj.add_child(self.queue_model_hwobj.\
                                              get_model_root(), basket)
             basket.set_enabled(False)
+            basket.clear_sample_list()
             for sample in sample_list:
                 if sample.location[0] == basket.get_location():
+                     basket.add_sample(sample)
                      self.queue_model_hwobj.add_child(basket, sample)
                      sample.set_enabled(False)
             #sample.set_enabled(False)
@@ -764,12 +773,19 @@ class DataCollectTree(qt.QWidget):
                     item.setText(0, item.get_model().loc_str + ' - ' \
                                  + item.get_model().get_display_name())
             elif isinstance(item, queue_item.BasketQueueItem):
-                item.setOn(False) 
+                do_it = True
+                child_item = item.firstChild()
+                while child_item:
+                    if child_item.firstChild():
+                        do_it = False
+                        break
+                    child_item = child_item.nextSibling()
+                if do_it:
+                    item.setOn(False)
                 #item.setText(0, item.get_model().get_display_name())
                 #item.setEnabled(item.get_model().get_is_present())
                 #print 'should %s %s %s %s' % ("open" if item.get_model().get_is_present() else "close", item.get_model(), item.get_model().location, item)
                 #item.setOpen(item.get_model().get_is_present())
-                pass
  
             it += 1
             item = it.current()

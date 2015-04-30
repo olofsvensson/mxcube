@@ -38,6 +38,8 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
                 self.emit(signal, ('', None))
             else:
                 self.emit(signal, (positionName, pos))
+        elif signal == 'apertureChanged':
+                self.emit('apertureChanged', (self.getApertureSize(), ))
         else:
             return MicrodiffMotor.MicrodiffMotor.connectNotify.im_func(self, signal)
 
