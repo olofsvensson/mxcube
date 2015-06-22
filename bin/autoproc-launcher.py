@@ -186,7 +186,7 @@ export ISPyB_user="opid231"
 export ISPyB_pass="tonic231"
 
 cd {path}
-/opt/pxsoft/bin/edna-plugin-launcher --inputFile {dm_path} --execute EDPluginControlAutoprocv1_0 
+/opt/pxsoft/bin/edna-plugin-launcher --PXSOFT_VERSION vMX --inputFile {dm_path} --execute EDPluginControlAutoprocv1_0 
 '''
 
 script_file.file.write(script_template.format(path=path, dm_path=dm_path))

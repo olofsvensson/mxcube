@@ -17,8 +17,8 @@ from collections import namedtuple
 from pprint import pformat
 
 
-# Production web-services:    http://160.103.210.1:8080/ispyb-ejb3/ispybWS/
-# Test web-services:          http://160.103.210.4:8080/ispyb-ejb3/ispybWS/
+# Production web-services:    http://160.103.210.1:8080/ispyb-ws/ispybWS/
+# Test web-services:          http://160.103.210.4:8080/ispyb-ws/ispybWS/
 
 # The WSDL root is configured in the hardware object XML file.
 _WSDL_ROOT = '' 

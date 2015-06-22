@@ -15,7 +15,7 @@
   <detector_fileext>cbf</detector_fileext>
   <detector_type>pilatus</detector_type>
   <detector_manufacturer>DECTRIS</detector_manufacturer>
-  <detector_model>Pilatus_6M_F</detector_model>
+  <detector_model>Pilatus3_2M</detector_model>
   <detector_px>2000</detector_px>
   <detector_py>2000</detector_py>
   <focusing_optic>KB</focusing_optic>

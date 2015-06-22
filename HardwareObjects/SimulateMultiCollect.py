@@ -30,6 +30,27 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
         self._max_number_of_frames = 740
 
 
+    def get_reference_image(self, image_path, template, run_number, image_no):
+        reference_image = None
+        if "BurnStrategy" in image_path:
+            if  template.startswith("ref-"):
+                reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/ref-x_1_%04d.cbf" % image_no
+            elif  template.startswith("burn-"):
+                wedgeNumber = int(template.split("_")[-3].split("w")[-1])
+                reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/burn-xw%d_1_%04d.cbf" % (wedgeNumber, image_no)                    
+        elif template.startswith("line-"):
+            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/line-opid30a1_%d_%04d.cbf" % (run_number, image_no)
+        elif  template.startswith("mesh-"):
+#                    reference_image = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20141003/RAW_DATA/MXPressE_01/mesh-MARK2-m1010713a_1_%04d.cbf" % image_no
+            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/mesh-opid30a1_1_%04d.cbf" % image_no
+        elif  template.startswith("ref-"):
+            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/ref-opid30a1_4_%04d.cbf" % image_no
+        else:
+            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/opid30a1_1_%04d.cbf" % image_no
+            #reference_image = "/scisoft/pxsoft/data/AUTO_PROCESSING/id29/20150501/RAW_DATA/max/cz/CN082A/vial6/peak1/vial6_peak1_w1_1_%04d.cbf" % image_no
+            #reference_image = "/scisoft/pxsoft/data/AUTO_PROCESSING/TEST-C2-P321/1/RAW_DATA/2nd_2nd_w1_1_%04d.cbf" % image_no
+        return reference_image
+
     def init(self):
         self.setControlObjects(diffractometer = self.getObjectByRole("diffractometer"),
                                sample_changer = self.getObjectByRole("sample_changer"),
@@ -81,22 +102,7 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
             self.emit("collectNumberOfFrames", number_of_images) 
         start_image_number = oscillation_parameters["start_image_number"]
         first_image_no = start_image_number
-        reference_image = None
-        if "BurnStrategy" in directory:
-            if  template.startswith("ref-"):
-                reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/ref-x_1_%04d.cbf" % first_image_no
-            elif  template.startswith("burn-"):
-                wedgeNumber = int(template.split("_")[-3].split("w")[-1])
-                reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/burn-xw%d_1_%04d.cbf" % (wedgeNumber, first_image_no)                    
-        elif template.startswith("line-"):
-            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/line-opid30a1_%d_%04d.cbf" % (run_number, first_image_no)
-        elif  template.startswith("mesh-"):
-#                    reference_image = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20141003/RAW_DATA/MXPressE_01/mesh-MARK2-m1010713a_1_%04d.cbf" % image_no
-            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/mesh-opid30a1_1_%04d.cbf" % first_image_no
-        elif  template.startswith("ref-"):
-            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/ref-opid30a1_4_%04d.cbf" % first_image_no
-        if reference_image is None:
-            reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/opid30a1_1_%04d.cbf" % first_image_no
+        reference_image = self.get_reference_image(directory, template, run_number, first_image_no)
         # Read the header
         dictHeader = self.readHeaderPilatus(reference_image)
         self.update_beamline_config(dictHeader)
@@ -107,6 +113,8 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
             self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
         except:
             logging.getLogger("HWR").exception("Could not update data collection in LIMS")
+        pass
+    
             
 
 
@@ -310,21 +318,7 @@ class SimulateMultiCollect(HardwareObject, AbstractMultiCollect):
                 image_no = index + start_image_number
                 image_path = os.path.join(directory, template % image_no)
                 logging.info("Simulating collection of image: %s", image_path)
-                if "BurnStrategy" in image_path:
-                    if  template.startswith("ref-"):
-                        reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/ref-x_1_%04d.cbf" % image_no
-                    elif  template.startswith("burn-"):
-                        wedgeNumber = int(template.split("_")[-3].split("w")[-1])
-                        reference_image = "/data/id23eh1/inhouse/mxihr6/20150121/RAW_DATA/Guillaume/Cer/BurnStrategy_01/burn-xw%d_1_%04d.cbf" % (wedgeNumber, image_no)                    
-                elif template.startswith("line-"):
-                    reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/line-opid30a1_%d_%04d.cbf" % (run_number, image_no)
-                elif  template.startswith("mesh-"):
-#                    reference_image = "/scisoft/pxsoft/data/WORKFLOW_TEST_DATA/id30a1/20141003/RAW_DATA/MXPressE_01/mesh-MARK2-m1010713a_1_%04d.cbf" % image_no
-                    reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/mesh-opid30a1_1_%04d.cbf" % image_no
-                elif  template.startswith("ref-"):
-                    reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/MXPressE_02/ref-opid30a1_4_%04d.cbf" % image_no
-                else:
-                    reference_image = "/data/id30a1/inhouse/opid30a1/20141114/RAW_DATA/opid30a1/6-1-2/opid30a1_1_%04d.cbf" % image_no
+                reference_image = self.get_reference_image(image_path, template, run_number, image_no)
                 shutil.copyfile(reference_image, image_path)
                 self._last_image_saved = image_no
 

@@ -1,7 +1,7 @@
 <object class="ISPyBClient2">
   <ws_root>
-    <!-- http://160.103.210.1:8080/ispyb-ejb3/ispybWS/ -->
-    http://ispyvalid.esrf.fr:8080/ispyb-ejb3/ispybWS/
+    <!-- http://160.103.210.1:8080/ispyb-ws/ispybWS/ -->
+    http://ispyvalid.esrf.fr:8080/ispyb-ws/ispybWS/
   </ws_root>
   <object role="session" href="/session"/>
   <beamline_name>simulator_mxcube</beamline_name>
